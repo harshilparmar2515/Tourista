@@ -28,7 +28,7 @@ function NavScrollExample() {
       <Container fluid>
 
         <Navbar.Brand as={Link} to="/">
-           <img src="public/logo.svg" alt="logo" style={{ width: "40px", marginRight: "10px" }}
+           <img src="/logo.svg" alt="logo" style={{ width: "40px", marginRight: "10px" }}
           Tourista
         </Navbar.Brand>
 
