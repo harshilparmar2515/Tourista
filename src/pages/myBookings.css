@@ -1,0 +1,124 @@
+.mybookings-page {
+  padding: 70px 0;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.mybookings-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.mybookings-subtitle {
+  text-align: center;
+  color: #64748b;
+  margin-bottom: 36px;
+  font-size: 1rem;
+}
+
+.mybookings-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #6366f1;
+  font-weight: 700;
+  margin: 40px 0;
+}
+
+.mybookings-empty {
+  background: white;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 40px;
+  text-align: center;
+  margin: 30px auto;
+  max-width: 520px;
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.06);
+}
+
+.mybookings-empty-icon {
+  font-size: 2.2rem;
+  color: #22c55e;
+  margin-bottom: 10px;
+}
+
+.btn-explore-trips {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+}
+
+.booking-card {
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.booking-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 27px rgba(15, 23, 42, 0.12);
+}
+
+.booking-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.booking-card h4 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: #111827;
+}
+
+.booking-details {
+  border-top: 1px solid #e2e8f0;
+  margin-top: 14px;
+  padding-top: 12px;
+  color: #475569;
+}
+
+.detail-item {
+  margin-bottom: 6px;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.booking-status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.45rem 0.7rem;
+}
+
+@media (max-width: 768px) {
+  .mybookings-title {
+    font-size: 1.8rem;
+  }
+
+  .mybookings-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .booking-card-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .booking-actions {
+    flex-direction: column;
+  }
+}
