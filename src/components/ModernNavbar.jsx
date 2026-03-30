@@ -119,12 +119,6 @@ function ModernNavbar() {
                       <Dropdown.Item as={Link} to="/my-bookings">
                         📌 My Bookings
                       </Dropdown.Item>
-                      <Dropdown.Item href="#profile">
-                        👤 Profile
-                      </Dropdown.Item>
-                      <Dropdown.Item href="#settings">
-                        ⚙️ Settings
-                      </Dropdown.Item>
                       <Dropdown.Divider />
                       <Dropdown.Item onClick={handleLogout} className="text-danger">
                         <FiLogOut className="me-2" />
