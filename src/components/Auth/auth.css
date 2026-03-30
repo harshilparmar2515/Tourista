@@ -233,8 +233,8 @@
 .input-custom:focus {
   box-shadow: none;
   outline: none;
-  color: white;
-}
+  color: rgb(181, 44, 44);
+} 
 
 /* Password Toggle Button */
 .btn-toggle-password {

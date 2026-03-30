@@ -116,17 +116,17 @@ const Footer = () => {
               <div className="contact-info">
                 <a href="tel:+919876543210" className="contact-item">
                   <FiPhone className="contact-icon" />
-                  <span>+1 (555) 123-4567</span>
+                  <span>+91 9427819675</span>
                 </a>
 
                 <a href="mailto:info@tourista.com" className="contact-item">
                   <FiMail className="contact-icon" />
-                  <span>info@tourista.com</span>
+                  <span>harshilparmar2515@gmail.com</span>
                 </a>
 
                 <div className="contact-item">
                   <FiMapPin className="contact-icon" />
-                  <span>123 Travel Street, NY 10001</span>
+                  <span>Bhavnagar, Gujarat</span>
                 </div>
               </div>
             </Col>
