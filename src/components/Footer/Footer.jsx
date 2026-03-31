@@ -66,7 +66,7 @@ const Footer = () => {
                   <a href="#instagram" className="social-icon" title="Instagram">
                     <FiInstagram />
                   </a>
-                  <a href="#linkedin" className="social-icon" title="LinkedIn">
+                  <a href="www.linkedin.com/in/harshil121" className="social-icon" title="LinkedIn">
                     <FiLinkedin />
                   </a>
                 </div>
