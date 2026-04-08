@@ -66,7 +66,11 @@ const Footer = () => {
                   <a href="https://www.instagram.com/_harshil_1290/" className="social-icon" title="Instagram">
                     <FiInstagram />
                   </a>
+<<<<<<< HEAD
                   <a href="https://www.linkedin.com/in/harshil121" className="social-icon" title="LinkedIn">
+=======
+                  <a href="www.linkedin.com/in/harshil121" className="social-icon" title="LinkedIn">
+>>>>>>> 23841f73e776adeb23c196ca071ed57c0da9be53
                     <FiLinkedin />
                   </a>
                 </div>
