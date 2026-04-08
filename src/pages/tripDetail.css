@@ -55,7 +55,7 @@
 
 .btn-hero-back {
   position: absolute !important;
-  top: 20px;
+  top: 10px;
   left: 20px;
   background: rgba(255, 255, 255, 0.15) !important;
   backdrop-filter: blur(10px);

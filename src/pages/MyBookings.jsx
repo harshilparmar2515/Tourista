@@ -26,7 +26,11 @@ const MyBookings = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!user) return;
+      if (!user) {
+        setBookings([]);
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       try {
@@ -59,7 +63,7 @@ const MyBookings = () => {
 
     setRemoving(bookingId);
     try {
-      await deleteDoc(doc(db, "MyBookings", bookingId));
+      await deleteDoc(doc(db, "booking", bookingId));
       setBookings((prev) => prev.filter((b) => b.id !== bookingId));
       addToast("Booking cancelled successfully.", "success");
     } catch (error) {

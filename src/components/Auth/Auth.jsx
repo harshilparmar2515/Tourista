@@ -54,7 +54,7 @@ const Auth = () => {
         setSuccess("Login Successful! Redirecting...");
         setTimeout(() => navigate(redirectPath), 1000);
       } else {
-        // Validation for signup
+        
         if (authData.password !== authData.confirmPassword) {
           setError("Passwords do not match!");
           setLoading(false);
@@ -94,7 +94,7 @@ const Auth = () => {
 
   return (
     <div className="auth-container">
-      {/* Background with gradient animation */}
+      
       <div className="auth-background">
         <div className="auth-bg-blur blob1"></div>
         <div className="auth-bg-blur blob2"></div>
@@ -102,7 +102,7 @@ const Auth = () => {
       </div>
 
       <Container className="auth-wrapper">
-        {/* Back Button */}
+        
         <Button
           variant="link"
           className="btn-back"
@@ -111,9 +111,9 @@ const Auth = () => {
           <FiArrowLeft /> Back Home
         </Button>
 
-        {/* Auth Card */}
+        
         <div className="auth-card glassmorphism">
-          {/* Header */}
+          
           <div className="auth-header">
             <h1 className="auth-title">
               {isLogin ? "Welcome Back" : "Join Tourista"}
@@ -125,23 +125,23 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Error Alert */}
+    
           {error && (
             <div className="alert alert-danger auth-alert">
               <strong>⚠️ Error:</strong> {error}
             </div>
           )}
 
-          {/* Success Alert */}
+      
           {success && (
             <div className="alert alert-success auth-alert">
               <strong>✓ Success:</strong> {success}
             </div>
           )}
 
-          {/* Auth Form */}
+    
           <Form onSubmit={handleSubmit} className="auth-form">
-            {/* Email Field */}
+          
             <Form.Group className="form-group-custom">
               <div className="input-wrapper">
                 <FiMail className="input-icon" />
@@ -181,7 +181,6 @@ const Auth = () => {
               </div>
             </Form.Group>
 
-            {/* Confirm Password Field (Signup Only) */}
             {!isLogin && (
               <Form.Group className="form-group-custom">
                 <div className="input-wrapper">
@@ -199,7 +198,7 @@ const Auth = () => {
               </Form.Group>
             )}
 
-            {/* Remember Me & Forgot Password (Login Only) */}
+            
             {isLogin && (
               <div className="form-options">
                 <Form.Check
@@ -213,7 +212,7 @@ const Auth = () => {
               </div>
             )}
 
-            {/* Submit Button */}
+          
             <Button
               type="submit"
               className="btn-auth-submit"
@@ -232,12 +231,11 @@ const Auth = () => {
               )}
             </Button>
 
-            {/* Divider */}
             <div className="divider">
               <span>or</span>
             </div>
 
-            {/* Google Login Button */}
+      
             <Button
               type="button"
               className="btn-google"
@@ -248,7 +246,7 @@ const Auth = () => {
             </Button>
           </Form>
 
-          {/* Toggle Auth */}
+
           <div className="auth-toggle">
             <p>
               {isLogin ? "Don't have an account?" : "Already have an account?"}
@@ -271,7 +269,7 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Terms & Privacy */}
+       
           <p className="auth-footer">
             By continuing, you agree to our{" "}
             <a href="#terms">Terms of Service</a> and{" "}

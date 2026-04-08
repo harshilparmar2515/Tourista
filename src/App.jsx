@@ -7,6 +7,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import TripDetail from "./pages/TripDetail";
 import TripListing from "./pages/TripListing";
+import Dashboard from "./pages/Dashboard";
 import "./styles/global.css";
 import "./styles/toast.css";
 import "./App.css";
@@ -15,6 +16,7 @@ import Booking from "./pages/Booking"
 import ProtectedRoute from "./components/ProtectedRoute";
 import MyBookings from "./pages/MyBookings";
 import { ToastProvider } from "./components/ToastContext";
+import AuthContextProvider from "./components/context/AuthContext";
 
 
 function App() {
@@ -32,6 +34,7 @@ function App() {
           <Route path="/Auth" element={<Auth />} />
           <Route path="/booking/:id" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
           <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         </Routes>
       </main>
 

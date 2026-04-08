@@ -91,6 +91,7 @@ const Contact = () => {
               
       </div> 
       {/* MAP SECTION */}
+      <h3 className="text-center mt-5">📍 Our Location</h3>
       <div className="map-section">
         <div className="map-section">
   <iframe

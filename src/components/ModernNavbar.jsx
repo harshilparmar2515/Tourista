@@ -10,6 +10,7 @@ import {
   FiHome,
   FiInfo,
   FiMapPin,
+  FiTrendingUp,
   FiLogIn,
 } from "react-icons/fi";
 import "./navbar.css";
@@ -61,7 +62,7 @@ function ModernNavbar() {
         <Container fluid className="px-4">
           {/* Logo */}
           <Navbar.Brand as={Link} to="/" className="navbar-brand-modern">
-            <img src="logo.svg" alt="logoo" height={45} />
+            <img src="/logo.svg" alt="logo" height={45} />
             <span className="brand-text">Tourista</span>
           </Navbar.Brand>
 
@@ -76,6 +77,10 @@ function ModernNavbar() {
               <Nav.Link as={Link} to="/about" className="nav-link-modern">
                 <FiInfo className="nav-icon" />
                 <span>ExploreTrips</span>
+              </Nav.Link>
+              <Nav.Link as={Link} to="/dashboard" className="nav-link-modern">
+                <FiTrendingUp className="nav-icon" />
+                <span>Dashboard</span>
               </Nav.Link>
               <Nav.Link as={Link} to="/contact" className="nav-link-modern">
                 <FiMapPin className="nav-icon" />
