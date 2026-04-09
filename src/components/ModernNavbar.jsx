@@ -62,7 +62,7 @@ function ModernNavbar() {
         <Container fluid className="px-4">
           {/* Logo */}
           <Navbar.Brand as={Link} to="/" className="navbar-brand-modern">
-            <img src="/logo.svg" alt="logo" height={45} />
+            <img src="logo.svg" alt="logo" height={45} />
             <span className="brand-text">Tourista</span>
           </Navbar.Brand>
 
