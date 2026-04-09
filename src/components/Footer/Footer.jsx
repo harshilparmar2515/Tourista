@@ -60,17 +60,29 @@ const Footer = () => {
                   <a href="#facebook" className="social-icon" title="Facebook">
                     <FiFacebook />
                   </a>
+
                   <a href="#twitter" className="social-icon" title="Twitter">
                     <FiTwitter />
                   </a>
-                  <a href="https://www.instagram.com/_harshil_1290/" className="social-icon" title="Instagram">
+
+                  <a
+                    href="https://www.instagram.com/_harshil_1290/"
+                    className="social-icon"
+                    title="Instagram"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <FiInstagram />
                   </a>
-<<<<<<< HEAD
-                  <a href="https://www.linkedin.com/in/harshil121" className="social-icon" title="LinkedIn">
-=======
-                  <a href="www.linkedin.com/in/harshil121" className="social-icon" title="LinkedIn">
->>>>>>> 23841f73e776adeb23c196ca071ed57c0da9be53
+
+                  {/* ✅ FIXED LINKEDIN */}
+                  <a
+                    href="https://www.linkedin.com/in/harshil121"
+                    className="social-icon"
+                    title="LinkedIn"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <FiLinkedin />
                   </a>
                 </div>
@@ -118,12 +130,15 @@ const Footer = () => {
               <h6 className="footer-heading">Contact Us</h6>
 
               <div className="contact-info">
-                <a href="tel:+919876543210" className="contact-item">
+                <a href="tel:+919427819675" className="contact-item">
                   <FiPhone className="contact-icon" />
                   <span>+91 9427819675</span>
                 </a>
 
-                <a href="mailto:info@tourista.com" className="contact-item">
+                <a
+                  href="mailto:harshilparmar2515@gmail.com"
+                  className="contact-item"
+                >
                   <FiMail className="contact-icon" />
                   <span>harshilparmar2515@gmail.com</span>
                 </a>
