@@ -1,8 +1,9 @@
+﻿
 import { useContext, useEffect, useMemo, useState } from "react";
-import { Container, Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Form, Placeholder } from "react-bootstrap";
 import { authContext } from "../components/context/AuthContext";
 import { db } from "../Firebase/Firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, onSnapshot, query, updateDoc, where, getDocs } from "firebase/firestore";  
 import {
   FiUser,
   FiHeart,
@@ -12,15 +13,46 @@ import {
   FiFilter,
   FiMapPin,
   FiCheckCircle,
-} from "react-icons/fi";
+} from "react-icons/fi";  
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useToast } from "../components/ToastContext";
 import BookingCard from "../components/Dashboard/BookingCard";
-import StatusCard from "../components/Dashboard/StatusCard";
+// @ts-ignore
+import DashboardCard from "../components/Dashboard/DashboardCard";
+// @ts-ignore
+import ChartCard from "../components/Dashboard/ChartCard";
+import PaymentModal from "../components/PaymentModal";
 import "./dashboard.css";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Cancelled"];
 
+const normalizeDate = (value) => {
+  if (!value) return null;
+  if (value?.toDate) return value.toDate();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const getMonthLabel = (date) =>
+  date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useContext(authContext);
+  const { addToast } = useToast();
   const [bookings, setBookings] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,54 +61,70 @@ const Dashboard = () => {
   const [sortBy, setSortBy] = useState("date");
   const [sortDirection, setSortDirection] = useState("asc");
   const [cancelledIds, setCancelledIds] = useState(new Set());
-  const [payMessage, setPayMessage] = useState("");
+  const [paymentTarget, setPaymentTarget] = useState(null);
+  const [paymentState, setPaymentState] = useState("idle");
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    if (!user || authLoading) {
+      return;
+    }
 
-      setError("");
-      setLoading(true);
+    setError("");
+    setLoading(true);
 
-      try {
-        const bookingsQuery = query(
-          collection(db, "MyBookings"),
-          where("userId", "==", user.uid)
-        );
-        const wishlistQuery = query(
-          collection(db, "Wishlist"),
-          where("userId", "==", user.uid)
-        );
+    try {
+      // Use user.uid (Firebase UID) instead of user.id
+      const userId = user.uid || user.id;
+      
+      console.log("Fetching data for user:", userId);
+      
+      const bookingsQuery = query(collection(db, "booking"), where("userId", "==", userId));
+      const wishlistQuery = query(collection(db, "Wishlist"), where("userId", "==", userId));
 
-        const [bookingsSnapshot, wishlistSnapshot] = await Promise.all([
-          getDocs(bookingsQuery),
-          getDocs(wishlistQuery),
-        ]);
+      // Set up real-time listeners for bookings
+      const unsubscribeBookings = onSnapshot(
+        bookingsQuery,
+        (snapshot) => {
+          const userBookings = snapshot.docs.map((docItem) => ({
+            id: docItem.id,
+            ...docItem.data(),
+          }));
+          console.log("Bookings fetched:", userBookings);
+          setBookings(userBookings);
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Booking error:", error);
+          setError("Failed to load bookings");
+          setLoading(false);
+        }
+      );
 
-        const userBookings = bookingsSnapshot.docs.map((docItem) => ({
-          id: docItem.id,
-          ...docItem.data(),
-        }));
-        const favorites = wishlistSnapshot.docs.map((docItem) => ({
-          id: docItem.id,
-          ...docItem.data(),
-        }));
+      // Set up real-time listeners for wishlist
+      const unsubscribeWishlist = onSnapshot(
+        wishlistQuery,
+        (snapshot) => {
+          const favorites = snapshot.docs.map((docItem) => ({
+            id: docItem.id,
+            ...docItem.data(),
+          }));
+          setWishlist(favorites);
+        },
+        (error) => {
+          console.error("Wishlist error:", error);
+        }
+      );
 
-        setBookings(userBookings);
-        setWishlist(favorites);
-      } catch (fetchError) {
-        console.error("Dashboard load failed:", fetchError);
-        setError("Unable to load your dashboard. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!authLoading) {
-      loadDashboard();
+      // Return cleanup function to unsubscribe from listeners
+      return () => {
+        unsubscribeBookings();
+        unsubscribeWishlist();
+      };
+    } catch (fetchError) {
+      console.error("Dashboard load failed:", fetchError);
+      setError("Unable to load your dashboard. Please try again later.");
+      setLoading(false);
     }
   }, [user, authLoading]);
 
@@ -86,17 +134,12 @@ const Dashboard = () => {
     const normalized = bookings.map((booking) => ({
       ...booking,
       isCancelled: cancelledIds.has(booking.id),
-      status: cancelledIds.has(booking.id)
-        ? "Cancelled"
-        : booking.status || "Pending",
+      status: cancelledIds.has(booking.id) ? "Cancelled" : booking.status || "Pending",
     }));
 
-    const filtered = normalized.filter((booking) => {
-      if (statusFilter === "All") {
-        return true;
-      }
-      return booking.status === statusFilter;
-    });
+    const filtered = normalized.filter((booking) =>
+      statusFilter === "All" ? true : booking.status === statusFilter
+    );
 
     const sorted = [...filtered].sort((a, b) => {
       if (sortBy === "price") {
@@ -105,53 +148,154 @@ const Dashboard = () => {
         return sortDirection === "asc" ? aPrice - bPrice : bPrice - aPrice;
       }
 
-      const aDate = new Date(a.tripDate || a.date || "");
-      const bDate = new Date(b.tripDate || b.date || "");
-      if (Number.isNaN(aDate.getTime()) || Number.isNaN(bDate.getTime())) {
-        return 0;
-      }
-      return sortDirection === "asc"
-        ? aDate - bDate
-        : bDate - aDate;
+      const aDate = normalizeDate(a.tripDate || a.date);
+      const bDate = normalizeDate(b.tripDate || b.date);
+      if (!aDate || !bDate) return 0;
+      return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
     });
 
     return sorted;
-  }, [bookings, cancelledIds, sortBy, sortDirection, statusFilter]);
+  }, [bookings, cancelledIds, statusFilter, sortBy, sortDirection]);
 
-  const statusCounts = useMemo(() => {
+  const analytics = useMemo(() => {
     const counts = { Pending: 0, Confirmed: 0, Cancelled: 0 };
+    let upcoming = 0;
+    let revenue = 0;
+    const lineMap = {};
+    const barMap = {};
+    const now = new Date();
+
     bookings.forEach((booking) => {
-      if (cancelledIds.has(booking.id)) {
-        counts.Cancelled += 1;
-      } else {
-        const status = booking.status || "Pending";
-        counts[status] = (counts[status] ?? 0) + 1;
-      }
+      const status = cancelledIds.has(booking.id) ? "Cancelled" : booking.status || "Pending";
+      counts[status] = (counts[status] ?? 0) + 1;
+
+      const tripDate = normalizeDate(booking.tripDate || booking.date);
+      if (tripDate && tripDate > now && status !== "Cancelled") upcoming += 1;
+
+      const amount = Number(booking.grandTotal ?? booking.totalPrice ?? booking.price ?? 0);
+      revenue += status === "Cancelled" ? 0 : amount;
+
+      const createdAt = normalizeDate(booking.createdAt);
+      const createdLabel = createdAt ? getMonthLabel(createdAt) : "Other";
+      lineMap[createdLabel] = (lineMap[createdLabel] ?? 0) + 1;
+
+      const monthLabel = tripDate ? getMonthLabel(tripDate) : createdLabel;
+      barMap[monthLabel] = (barMap[monthLabel] ?? 0) + amount;
     });
-    return counts;
+
+    const lineData = Object.entries(lineMap)
+      .map(([name, bookings]) => ({ name, bookings }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const barData = Object.entries(barMap)
+      .map(([name, revenue]) => ({ name, revenue }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const pieData = Object.entries(counts).map(([name, value]) => ({ name, value }));
+
+    return { counts, upcoming, revenue, lineData, barData, pieData };
   }, [bookings, cancelledIds]);
+
+  const statusCounts = analytics.counts;
 
   const handleCancel = (bookingId) => {
     setCancelledIds((prev) => new Set(prev).add(bookingId));
+    addToast("Booking canceled locally.", "info");
   };
 
-  const handlePayNow = (bookingId) => {
-    setPayMessage("Pay Now is coming soon. Stay tuned for secure checkout.");
-    window.setTimeout(() => setPayMessage(""), 3200);
+  const handlePayNow = (booking) => {
+    setPaymentTarget(booking);
+    setPaymentState("idle");
   };
-  console.log("USER:", user?.uid);
-console.log("BOOKINGS:", bookings);
+
+  const closeModal = () => {
+    setPaymentTarget(null);
+    setPaymentState("idle");
+    setPaymentLoading(false);
+  };
+
+  const processPayment = async () => {
+    if (!paymentTarget) return;
+    setPaymentLoading(true);
+    setPaymentState("processing");
+
+    await new Promise((resolve) => setTimeout(resolve, 1600));
+    const success = Math.random() > 0.18;
+
+    if (!success) {
+      setPaymentState("failure");
+      setPaymentLoading(false);
+      addToast("Payment failed. Please try again.", "error");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "booking", paymentTarget.id), { status: "Confirmed" });
+      setBookings((prev) =>
+        prev.map((item) => (item.id === paymentTarget.id ? { ...item, status: "Confirmed" } : item))
+      );
+      setPaymentState("success");
+      addToast("Payment successful! Booking confirmed.", "success");
+    } catch (updateError) {
+      console.error("Payment update error:", updateError);
+      setPaymentState("failure");
+      addToast("Unable to update booking status.", "error");
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const renderSkeleton = () => (
+    <div className="dashboard-loading-grid">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <Card key={index} className="dashboard-skeleton-card card-elevated">
+          <Card.Body>
+            <Placeholder as={Card.Title} animation="glow">
+              <Placeholder xs={6} />
+            </Placeholder>
+            <div className="skeleton-row mt-4">
+              <Placeholder animation="glow">
+                <Placeholder xs={8} />
+              </Placeholder>
+              <Placeholder animation="glow">
+                <Placeholder xs={4} />
+              </Placeholder>
+            </div>
+            <div className="skeleton-row mt-3">
+              <Placeholder animation="glow">
+                <Placeholder xs={5} />
+              </Placeholder>
+              <Placeholder animation="glow">
+                <Placeholder xs={7} />
+              </Placeholder>
+            </div>
+          </Card.Body>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <Container className="dashboard-page py-4">
+      {/* DEBUG INFO - Simple version */}
+      <div style={{ fontSize: "12px", background: "#f0f0f0", padding: "10px", marginBottom: "20px", borderRadius: "5px" }}>
+        <p><strong>Debug:</strong> User: {user ? user.email : "Not logged in"} | Bookings: {bookings.length} | Loading: {loading ? "Yes" : "No"} | Error: {error || "None"}</p>
+      </div>
+
+      {!user && !authLoading && (
+        <div className="dashboard-error" style={{ background: "#ffe0e0", padding: "20px", borderRadius: "8px", marginBottom: "20px" }}>
+          <h4>⚠️ Not Logged In</h4>
+          <p>Please login to view your dashboard</p>
+        </div>
+      )}
       <div className="dashboard-header">
         <div>
-          <p className="dashboard-overline">Travel dashboard</p>
-          <h1>Welcome back, {displayedName}</h1>
+          <p className="dashboard-overline">Tourista Analytics</p>
+          <h1>Manage your trips with confidence</h1>
           <p className="dashboard-intro">
-            Track your bookings, wishlist, and booking status in one elegant place.
+            Live insights, booking status, and payment workflows in one premium control panel.
           </p>
         </div>
-
         <Card className="dashboard-profile-card shadow-sm">
           <div className="profile-avatar">
             {user?.photoURL ? (
@@ -170,135 +314,126 @@ console.log("BOOKINGS:", bookings);
         </Card>
       </div>
 
-      <Row className="dashboard-grid">
-        <Col xl={3} lg={4}>
-          <Card className="dashboard-panel shadow-sm">
-            <Card.Body>
-              <div className="panel-heading">
-                <h5>Quick overview</h5>
-                <p>Essential account metrics at a glance.</p>
-              </div>
-
-              <div className="status-panel-list">
-                <StatusCard
-                  icon={<FiCalendar />}
-                  label="Upcoming"
-                  value={statusCounts.Pending}
-                  accent="accent-soft"
-                />
-                <StatusCard
-                  icon={<FiCheckCircle />}
-                  label="Confirmed"
-                  value={statusCounts.Confirmed}
-                  accent="accent-primary"
-                />
-                <StatusCard
-                  icon={<FiTrendingUp />}
-                  label="Cancelled"
-                  value={statusCounts.Cancelled}
-                  accent="accent-danger"
-                />
-              </div>
-            </Card.Body>
-          </Card>
-
-          <Card className="dashboard-panel shadow-sm wishlist-panel">
-            <Card.Body>
-              <div className="panel-heading">
-                <h5>Wishlist</h5>
-                <p>{wishlist.length} saved trip{wishlist.length === 1 ? "" : "s"}</p>
-              </div>
-              {wishlist.length > 0 ? (
-                <ul className="wishlist-list">
-                  {wishlist.slice(0, 4).map((item) => (
-                    <li key={item.id}>
-                      <FiHeart className="wishlist-icon" />
-                      <span>{item.tripName || item.destination || "Favorite destination"}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="empty-state-card">
-                  <p>No wishlist items yet.</p>
-                  <Button variant="outline-primary" href="/trips">
-                    Explore trips
-                  </Button>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
+      <Row className="dashboard-grid dashboard-summary-grid">
+        <Col lg={12} sm={6}>
+          <DashboardCard icon={<FiTrendingUp />} title="Total Bookings" value={bookings.length} subtitle="Bookings recorded" />
         </Col>
-
-        <Col xl={9} lg={8}>
-          <div className="dashboard-toolbar">
-            <div className="toolbar-copy">
-              <h5>Bookings</h5>
-              <p>Sort and filter your trips by date or total price.</p>
-            </div>
-            <div className="toolbar-controls">
-              <Form.Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="dashboard-select"
-              >
-                {statusOptions.map((option) => (
-                  <option value={option} key={option}>
-                    {option}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="dashboard-select"
-              >
-                <option value="date">Sort by date</option>
-                <option value="price">Sort by price</option>
-              </Form.Select>
-              <Button
-                variant="outline-secondary"
-                className="sort-toggle"
-                onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
-              >
-                <FiFilter /> {sortDirection === "asc" ? "Ascending" : "Descending"}
-              </Button>
-            </div>
-          </div>
-
-          {loading || authLoading ? (
-            <div className="dashboard-loading">
-              <Spinner animation="border" role="status" />
-              <span>Loading dashboard...</span>
-            </div>
-          ) : error ? (
-            <div className="dashboard-error">
-              <p>{error}</p>
-            </div>
-          ) : dashboardBookings.length === 0 ? (
-            <div className="dashboard-empty-state">
-              <h3>No bookings yet</h3>
-              <p>Once you book a trip, it will appear here with status and payment details.</p>
-              <Button variant="primary" href="about">
-                Browse trips
-              </Button>
-            </div>
-          ) : (
-            <div className="dashboard-booking-grid">
-              {dashboardBookings.map((booking) => (
-                <BookingCard
-                  key={booking.id}
-                  booking={booking}
-                  isCancelled={booking.isCancelled}
-                  onCancel={handleCancel}
-                  onPayNow={handlePayNow}
-                />
-              ))}
-            </div>
-          )}
-
-          {payMessage && <div className="dashboard-toast">{payMessage}</div>}
+        <Col lg={12} sm={6}>
+          <DashboardCard icon={<FiDollarSign />} title="Revenue" value={`₹${analytics.revenue.toLocaleString()}`} subtitle="Estimated total" />
+        </Col>
+        <Col lg={12} sm={6}>
+          <DashboardCard icon={<FiCalendar />} title="Upcoming Trips" value={analytics.upcoming} subtitle="Trips ahead" />
+        </Col>
+        <Col lg={12} sm={6}>
+          <DashboardCard icon={<FiCheckCircle />} title="Cancelled" value={statusCounts.Cancelled} subtitle="Canceled bookings" accent="accent-danger" />
         </Col>
       </Row>
+
+      <Row className="dashboard-grid dashboard-charts-grid">
+        <Col lg={12}>
+          <ChartCard title="Bookings Over Time" description="Monthly bookings trend.">
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={analytics.lineData} margin={{ top: 16, right: 16, bottom: 4, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" tick={{ fill: "#64748b" }} />
+                <YAxis tick={{ fill: "#64748b" }} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="bookings" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </Col>
+
+        <Col lg={12}>
+          <ChartCard title="Revenue Breakdown" description="Monthly revenue performance.">
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={analytics.barData} margin={{ top: 16, right: 16, bottom: 4, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" tick={{ fill: "#64748b" }} />
+                <YAxis tick={{ fill: "#64748b" }} />
+                <Tooltip />
+                <Bar dataKey="revenue" fill="#0ea5e9" radius={[12, 12, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </Col>
+
+        <Col lg={12}>
+          <ChartCard title="Status Distribution" description="Active booking split.">
+            <ResponsiveContainer width="100%" height={320}>
+              <PieChart>
+                <Pie data={analytics.pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={110} paddingAngle={4}>
+                  {analytics.pieData.map((entry, index) => {
+                    const colors = ["#6366f1", "#10b981", "#ef4444"];
+                    return <Cell key={entry.name} fill={colors[index % colors.length]} />;
+                  })}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </Col>
+      </Row>
+
+      <div className="dashboard-toolbar">
+        <div className="toolbar-copy">
+          <h5>Bookings</h5>
+          <p>Sort and filter your active bookings with live payment preview.</p>
+        </div>
+        <div className="toolbar-controls">
+          <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="dashboard-select">
+            {statusOptions.map((option) => (
+              <option value={option} key={option}>
+                {option}
+              </option>
+            ))}
+          </Form.Select>
+          <Form.Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="dashboard-select">
+            <option value="date">Sort by date</option>
+            <option value="price">Sort by price</option>
+          </Form.Select>
+          <Button variant="outline-secondary" className="sort-toggle" onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}>
+            <FiFilter /> {sortDirection === "asc" ? "Ascending" : "Descending"}
+          </Button>
+        </div>
+      </div>
+
+      {loading || authLoading ? (
+        renderSkeleton()
+      ) : error ? (
+        <div className="dashboard-error">
+          <p>{error}</p>
+        </div>
+      ) : dashboardBookings.length === 0 ? (
+        <div className="dashboard-empty-state">
+          <div className="empty-illustration" aria-hidden="true">
+            <div className="sun" />
+            <div className="cloud" />
+            <div className="plane" />
+          </div>
+          <h3>No bookings yet</h3>
+          <p>Once you book a trip, it will appear here with status, preview, and payment details.</p>
+          <Button variant="primary" href="about">
+            Browse trips
+          </Button>
+        </div>
+      ) : (
+        <div className="dashboard-booking-grid">
+          {dashboardBookings.map((booking) => (
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              isCancelled={booking.isCancelled}
+              onCancel={handleCancel}
+              onPayNow={() => handlePayNow(booking)}
+            />
+          ))}
+        </div>
+      )}
+
+      <PaymentModal show={Boolean(paymentTarget)} booking={paymentTarget} onClose={closeModal} onConfirm={processPayment} processing={paymentLoading} status={paymentState} />
     </Container>
   );
 };

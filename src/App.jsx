@@ -11,13 +11,12 @@ import Dashboard from "./pages/Dashboard";
 import "./styles/global.css";
 import "./styles/toast.css";
 import "./App.css";
-import Auth from  "./components/Auth/Auth";
-import Booking from "./pages/Booking"
+import Auth from "./components/Auth/Auth";
+import Booking from "./pages/Booking";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MyBookings from "./pages/MyBookings";
+import Admin from "./pages/Admin";
 import { ToastProvider } from "./components/ToastContext";
-import AuthContextProvider from "./components/context/AuthContext";
-
 
 function App() {
   return (
@@ -35,6 +34,7 @@ function App() {
           <Route path="/booking/:id" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
           <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
         </Routes>
       </main>
 

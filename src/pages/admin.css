@@ -1,0 +1,88 @@
+.admin-page {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-header h1 {
+  margin-bottom: 0.6rem;
+}
+
+.admin-summary-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.admin-summary-card {
+  padding: 1.35rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.admin-summary-card h5 {
+  margin-bottom: 0.5rem;
+  color: #4f46e5;
+}
+
+.admin-summary-card p {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.admin-loading {
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  min-height: 280px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.admin-table-card {
+  padding: 1.35rem;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.admin-table-header h4 {
+  margin-bottom: 1rem;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-panel-info {
+  padding: 1.35rem;
+}
+
+.admin-info-badges {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.admin-table th,
+.admin-table td {
+  vertical-align: middle;
+}
+
+@media (max-width: 991px) {
+  .admin-header,
+  .admin-summary-cards {
+    grid-template-columns: 1fr;
+  }
+}

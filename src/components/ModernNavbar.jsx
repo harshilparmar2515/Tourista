@@ -1,8 +1,11 @@
 import { Container, Nav, Navbar, Button, Dropdown, Image } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../Firebase/Firebase";
-import { signOut, onAuthStateChanged } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { signOut } from "firebase/auth";
+import { useContext, useEffect, useState } from "react";
+import { authContext } from "./context/AuthContext";
+import { useToast } from "./ToastContext";
+import ThemeToggle from "./ThemeToggle";
 import {
   FiLogOut,
   FiUser,
@@ -16,16 +19,12 @@ import {
 import "./navbar.css";
 
 function ModernNavbar() {
-  const [user, setUser] = useState(null);
+  const { user, isAdmin } = useContext(authContext);
+  const { addToast } = useToast();
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-
-    // Scroll event listener
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
@@ -33,7 +32,6 @@ function ModernNavbar() {
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      unsubscribe();
     };
   }, []);
 
@@ -41,15 +39,10 @@ function ModernNavbar() {
     try {
       await signOut(auth);
       navigate("/");
-      showToast("Logged out successfully ✓", "success");
+      addToast("Logged out successfully ✓", "success");
     } catch (error) {
-      showToast("Logout failed", "danger");
+      addToast("Logout failed", "error");
     }
-  };
-
-  const showToast = (message, type = "info") => {
-    // This will be replaced with toast notification
-    alert(message);
   };
 
   return (
@@ -89,12 +82,18 @@ function ModernNavbar() {
             </Nav>
 
             {/* Auth Actions */}
-            <Nav className="ms-auto nav-auth">
+            <Nav className="ms-auto nav-auth align-items-center gap-2">
+              <ThemeToggle />
               {user ? (
                 <>
                   <Nav.Link as={Link} to="/my-bookings" className="nav-link-modern">
                     My Bookings
                   </Nav.Link>
+                  {isAdmin && (
+                    <Nav.Link as={Link} to="/admin" className="nav-link-modern">
+                      Admin
+                    </Nav.Link>
+                  )}
 
                   <Dropdown>
                     <Dropdown.Toggle
@@ -133,14 +132,16 @@ function ModernNavbar() {
                   </Dropdown>
                 </>
               ) : (
-                <Button
-                  as={Link}
-                  to="/auth"
-                  className="btn-login"
-                >
-                  <FiLogIn className="me-2" />
-                  Login
-                </Button>
+                <>
+                  <Button
+                    as={Link}
+                    to="/auth"
+                    className="btn-login"
+                  >
+                    <FiLogIn className="me-2" />
+                    Login
+                  </Button>
+                </>
               )}
             </Nav>
           </Navbar.Collapse>
